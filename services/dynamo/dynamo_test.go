@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	test "bishack.dev/testing"
+	test "github.com/BottleneckStudio/km-api/testing"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
