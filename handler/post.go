@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/BottleneckStudio/km-api/services/post"
@@ -27,7 +28,7 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 	}
 	json.HTMLEscape(&buf, body)
 	w.WriteHeader(http.StatusOK)
-	w.Write(buf.Bytes())
+	fmt.Fprint(w, buf.String())
 }
 
 // GetPosts ...
@@ -50,5 +51,5 @@ func GetPosts(w http.ResponseWriter, r *http.Request) {
 	}
 	json.HTMLEscape(&buf, body)
 	w.WriteHeader(http.StatusOK)
-	w.Write(buf.Bytes())
+	fmt.Fprint(w, buf.String())
 }

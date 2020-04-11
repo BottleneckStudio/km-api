@@ -12,10 +12,7 @@ import (
 )
 
 var (
-	cognitoID        = os.Getenv("COGNITO_CLIENT_ID")
-	cognitoSecret    = os.Getenv("COGNITO_CLIENT_SECRET")
 	dynamoTablePosts = os.Getenv("DYNAMO_TABLE_POSTS")
-	dynamoTableLikes = os.Getenv("DYNAMO_TABLE_LIKES")
 	dynamoEndpoint   = os.Getenv("DYNAMO_ENDPOINT")
 )
 
@@ -35,7 +32,7 @@ func ClientContext(next http.Handler) http.Handler {
 			Transport: netTransport,
 		}
 
-		ctx := context.WithValue(r.Context(), "client", c)
+		ctx := context.WithValue(r.Context(), "client", c) // nolint
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -46,7 +43,7 @@ func PostContext(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p := post.New(dynamoTablePosts, dynamoEndpoint, nil)
 
-		ctx := context.WithValue(r.Context(), "postService", p)
+		ctx := context.WithValue(r.Context(), "postService", p) // nolint
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
