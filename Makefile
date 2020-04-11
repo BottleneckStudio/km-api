@@ -9,7 +9,7 @@ test: lint
 
 lint:
 	@echo '  -> running golangci_lint'
-	@$(go env GOPATH)/bin/golangci-lint run
+	@./bin/golangci-lint run
 	@echo
 .PHONY: lint
 
