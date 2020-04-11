@@ -1,0 +1,14 @@
+{
+  "name": "km-api",
+  "profile": "default",
+  "stages": {
+    "development": {
+      "proxy": {
+        "command": "PORT=$PORT air"
+      }
+    }
+  },
+  "regions": [
+    "ap-southeast-1"
+  ]
+}
