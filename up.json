@@ -8,7 +8,11 @@
       }
     },
     "staging": {
-      "domain": "s.keepmotivat.in",
+      "domain": "s-api.keepmotivat.in",
+      "zone": false
+    },
+    "production": {
+      "domain": "api.keepmotivat.in",
       "zone": false
     }
   },
