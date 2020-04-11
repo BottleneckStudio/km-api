@@ -23,7 +23,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Install linter
-      run: go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+      run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sudo sh -s v1.24.0
 
     - name: Install apex/up
       run: curl -sf https://up.apex.sh/install | sudo sh
