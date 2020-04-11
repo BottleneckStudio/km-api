@@ -5,7 +5,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/BottleneckStudio/km-api/handler"
+	mw "github.com/BottleneckStudio/km-api/middleware"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 )
@@ -18,19 +21,27 @@ func main() {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(middleware.Timeout(60 * time.Second))
 
 	r.Get("/", hello)
-	r.Get("/greet/{name}", greeter)
+
+	r.Route("/api/v1", func(r chi.Router) {
+
+		r.Route("/posts", func(r chi.Router) {
+			r.Use(mw.ClientContext)
+			r.Use(mw.PostContext)
+			r.Get("/", handler.GetPosts)
+			r.Get("/{id}", handler.GetPost)
+		})
+	})
 
 	log.Fatal(http.ListenAndServe(port, r))
 }
 
 func hello(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World")
-}
-
-func greeter(w http.ResponseWriter, r *http.Request) {
-	name := chi.URLParam(r, "name")
-
-	fmt.Fprintf(w, "Hi there %v!", name)
+	stage := os.Getenv("UP_STAGE")
+	if stage == "" {
+		stage = "Local"
+	}
+	fmt.Fprintf(w, "Hello!! API serving from %s", stage)
 }
