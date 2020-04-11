@@ -6,6 +6,10 @@
       "proxy": {
         "command": "PORT=$PORT air"
       }
+    },
+    "staging": {
+      "domain": "s.keepmotivat.in",
+      "zone": false
     }
   },
   "regions": [
