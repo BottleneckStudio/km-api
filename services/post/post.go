@@ -1,7 +1,11 @@
 package post
 
 import (
+	"fmt"
 	"log"
+	"regexp"
+	"strings"
+	"time"
 
 	"github.com/BottleneckStudio/km-api/services/dynamo"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -41,18 +45,17 @@ func (c *Client) GetCount() int64 {
 }
 
 // GetPost ...
-func (c *Client) GetPost(username, id string) *Post {
+func (c *Client) GetPost(id string) *Post {
 	ks := "id = :id and created > :created"
-	fs := "username = :username"
+	//fs := "username = :username"
 	vals := map[string]interface{}{
-		":id":       id,
-		":created":  0,
-		":username": username,
+		":id":      id,
+		":created": 0,
 	}
 
 	// we set index name to blank since we're not querying
 	// global secondary index
-	out, err := c.Query("", ks, fs, vals, false, 0)
+	out, err := c.Query("", ks, "", vals, false, 0)
 	if err != nil {
 		log.Println("Query error:", err.Error())
 		return nil
@@ -105,4 +108,71 @@ func (c *Client) GetPosts() []*Post {
 	var posts []*Post
 	_ = dynamodbattribute.UnmarshalListOfMaps(out.Items, &posts)
 	return posts
+}
+
+// CreatePost creates a new post
+func (c *Client) CreatePost(params map[string]interface{}) *Post {
+	// dates
+	now := time.Now().Unix()
+	params["created"] = now
+	params["updated"] = now
+
+	// parse title to create slug for id
+	title := params["title"].(string)
+	// remove extra spaces between
+	slug := regexp.MustCompile("[^a-zA-Z0-9 ]").ReplaceAllString(title, "")
+	// remove outer spaces
+	slug = strings.Trim(regexp.MustCompile(`\s+`).ReplaceAllString(slug, " "), " ")
+	slug = strings.Replace(slug, " ", "-", -1)
+	slug = strings.ToLower(slug)
+	// combine
+	params["id"] = fmt.Sprintf("%s-%d", slug, now)
+
+	item, _ := dynamodbattribute.MarshalMap(params)
+
+	input := &dynamodb.PutItemInput{}
+	input.SetTableName(c.TableName)
+	input.SetItem(item)
+	input.SetReturnValues("ALL_OLD")
+
+	_, err := c.Provider.PutItem(input)
+	if err != nil {
+		log.Println("PutItem error:", err.Error())
+		return nil
+	}
+
+	var post Post
+	_ = dynamodbattribute.UnmarshalMap(item, &post)
+	return &post
+}
+
+// UpdatePost ...
+func (c *Client) UpdatePost(
+	id,
+	cover,
+	content string,
+	created int64,
+) error {
+	key, _ := dynamodbattribute.MarshalMap(map[string]interface{}{
+		"id":      id,
+		"created": created,
+	})
+	vals, _ := dynamodbattribute.MarshalMap(map[string]interface{}{
+		":cover":   cover,
+		":content": content,
+	})
+
+	input := &dynamodb.UpdateItemInput{}
+	input.SetKey(key)
+	input.SetTableName(c.TableName)
+	input.SetUpdateExpression("SET content = :content, cover = :cover")
+	input.SetExpressionAttributeValues(vals)
+
+	_, err := c.Provider.UpdateItem(input)
+	if err != nil {
+		log.Println("UpdateItem error:", err.Error())
+		return err
+	}
+
+	return nil
 }
