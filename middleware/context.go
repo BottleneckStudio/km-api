@@ -9,6 +9,8 @@ import (
 	"context"
 
 	"github.com/BottleneckStudio/km-api/services/post"
+	// autoload values from .env file to ENV
+	_ "github.com/joho/godotenv/autoload"
 )
 
 const PostServiceKey = "postService"
