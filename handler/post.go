@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,7 +11,6 @@ import (
 
 // GetPost ...
 func GetPost(w http.ResponseWriter, r *http.Request) {
-	var buf bytes.Buffer
 
 	id := chi.URLParam(r, "id")
 
@@ -25,31 +23,20 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
-	body, err := json.Marshal(post)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-	json.HTMLEscape(&buf, body)
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, buf.String())
+	_ = json.NewEncoder(w).Encode(post)
+
 }
 
 // GetPosts ...
 func GetPosts(w http.ResponseWriter, r *http.Request) {
-	var buf bytes.Buffer
-
 	ps := r.Context().Value("postService").(interface {
 		GetPosts() []*post.Post
 	})
 
 	posts := ps.GetPosts()
-	body, err := json.Marshal(posts)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-	}
-	json.HTMLEscape(&buf, body)
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprint(w, buf.String())
+	_ = json.NewEncoder(w).Encode(posts)
 }
 
 // CreatePost ...
