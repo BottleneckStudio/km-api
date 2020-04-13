@@ -29,8 +29,8 @@ func main() {
 	r.Route("/api/v1", func(r chi.Router) {
 
 		r.Route("/posts", func(r chi.Router) {
-			r.Use(mw.ClientContext)
 			r.Use(mw.PostContext)
+
 			r.Post("/", handler.CreatePost)
 			r.Get("/", handler.GetPosts)
 			r.Get("/{id}", handler.GetPost)
