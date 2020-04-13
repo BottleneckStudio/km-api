@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/BottleneckStudio/km-api/services/post"
@@ -67,7 +66,7 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, _ := json.Marshal(p)
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Fprint(w, string(response))
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(p)
 }

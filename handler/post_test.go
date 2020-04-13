@@ -110,7 +110,7 @@ func TestCreatePost(t *testing.T) {
 		})
 		CreatePost(w, r)
 
-		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, http.StatusCreated, w.Code)
 		p.AssertExpectations(t)
 	})
 
