@@ -16,4 +16,5 @@
 .env
 tmp/
 up.json
+jwks.json
 coverage.txt
