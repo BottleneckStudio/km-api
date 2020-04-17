@@ -17,7 +17,7 @@ dev:
 	@air
 .PHONY: dev
 
-deploy: test up clean
+deploy: test jwks up clean
 	@echo "  -> done ✓"
 .PHONY: deploy
 
@@ -26,9 +26,14 @@ up: up.json
 	@up
 .PHONY: up
 
+jwks:
+	@curl -o jwks.json "https://cognito-idp.${AWS_REGION}.amazonaws.com/${COGNITO_POOL_ID}/.well-known/jwks.json"
+.PHONY: clean
+
 clean:
 	@rm -rf up.json
 	@rm -rf ./dist/
+	@rm -rf jwks.json
 .PHONY: clean
 
 
