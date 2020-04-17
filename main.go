@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/lestrrat-go/jwx/jwk"
 )
 
 func main() {
@@ -31,9 +33,13 @@ func main() {
 		r.Route("/posts", func(r chi.Router) {
 			r.Use(mw.PostContext)
 
-			r.Post("/", handler.CreatePost)
 			r.Get("/", handler.GetPosts)
 			r.Get("/{id}", handler.GetPost)
+
+			r.Group(func(r chi.Router) {
+				r.Use(mw.AuthCheck(initializeKeySets()))
+				r.Post("/", handler.CreatePost)
+			})
 		})
 	})
 
@@ -46,4 +52,18 @@ func hello(w http.ResponseWriter, r *http.Request) {
 		stage = "Local"
 	}
 	fmt.Fprintf(w, "Hello!! API serving from %s", stage)
+}
+
+func initializeKeySets() *jwk.Set {
+	content, err := ioutil.ReadFile("jwks.json")
+	if err != nil {
+		log.Printf("failed to read file: %s", err)
+		return nil
+	}
+	set, err := jwk.ParseBytes(content)
+	if err != nil {
+		log.Printf("failed to parse JWK: %s", err)
+		return nil
+	}
+	return set
 }
