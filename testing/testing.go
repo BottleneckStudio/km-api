@@ -18,6 +18,13 @@ func init() {
 	_ = os.Chdir(dir)
 }
 
+// JwtGoMock ...
+type JwtGoMock struct {
+	mock.Mock
+}
+
+// func
+
 // DynamoProviderMock ...
 type DynamoProviderMock struct {
 	mock.Mock
