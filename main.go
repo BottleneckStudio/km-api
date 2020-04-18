@@ -10,6 +10,7 @@ import (
 
 	"github.com/BottleneckStudio/km-api/handler"
 	mw "github.com/BottleneckStudio/km-api/middleware"
+	"github.com/BottleneckStudio/km-api/services/auth"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	_ "github.com/joho/godotenv/autoload"
@@ -37,7 +38,7 @@ func main() {
 			r.Get("/{id}", handler.GetPost)
 
 			r.Group(func(r chi.Router) {
-				r.Use(mw.AuthCheck(initializeKeySets()))
+				r.Use(mw.AuthCheck(auth.New(initializeKeySets())))
 				r.Post("/", handler.CreatePost)
 			})
 		})

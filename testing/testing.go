@@ -9,6 +9,7 @@ import (
 	"runtime"
 
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -18,12 +19,21 @@ func init() {
 	_ = os.Chdir(dir)
 }
 
-// JwtGoMock ...
-type JwtGoMock struct {
+// ParserMock ...
+type ParserMock struct {
 	mock.Mock
 }
 
-// func
+func (p *ParserMock) Parse(tokenString string) (*jwt.Token, error) {
+	args := p.Called(tokenString)
+
+	resp := args.Get(0)
+	if resp == nil {
+		return nil, args.Error(1)
+	}
+
+	return resp.(*jwt.Token), args.Error(1)
+}
 
 // DynamoProviderMock ...
 type DynamoProviderMock struct {
