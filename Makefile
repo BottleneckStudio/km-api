@@ -1,5 +1,36 @@
 GO ?= go
 
+setup:
+	@if [[ ! -x `which go` ]]; then echo '\n  Go is not installed!'; exit; fi;
+	@if [[ ! -x `which docker` ]]; then echo '\n  Docker is not installed!'; exit; fi;
+	@echo
+	@echo ' Setting up development environment'
+	@echo
+	@echo ' [Go]'
+	@echo ' -> downloading go modules...'
+	@$(GO) mod download
+	@echo ' -> downloading golangci-lint...'
+	@cd ~ && curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v1.24.0 > /dev/null && cd - > /dev/null
+	@echo ' -> downloading hot-reload program called air...'
+	@cd ~ && go get -u github.com/cosmtrek/air && cd - > /dev/null
+	@echo
+	@echo ' [Apex/Up]'
+	@echo ' -> downloading apex/up...'
+	@curl -sf https://up.apex.sh/install | sh > /dev/null
+	@echo
+	@echo ' [Docker]'
+	@echo ' -> [dynamodb] setting up service...'
+	@docker rm -f dynamo > /dev/null 2>&1
+	@docker run --name dynamo -d -p 8000:8000 amazon/dynamodb-local -jar DynamoDBLocal.jar -inMemory -sharedDb > /dev/null
+	@echo ' -> [dynamodb] rock en roll!'
+	@echo
+	@echo ' [IMPORTANT!]'
+	@echo ' Create a .env file and ask @kentoy for the content'
+	@echo
+	@echo ' Done ✔'
+	@echo
+.PHONY: setup
+
 test: lint
 	@echo '  -> running test'
 	@$(GO) test -race -coverprofile=coverage.txt -covermode=atomic ./...
@@ -17,7 +48,7 @@ dev:
 	@air
 .PHONY: dev
 
-deploy: test up clean
+deploy: test jwks up clean
 	@echo "  -> done ✓"
 .PHONY: deploy
 
@@ -26,9 +57,14 @@ up: up.json
 	@up
 .PHONY: up
 
+jwks:
+	@curl -o jwks.json "https://cognito-idp.${AWS_REGION}.amazonaws.com/${COGNITO_POOL_ID}/.well-known/jwks.json"
+.PHONY: clean
+
 clean:
 	@rm -rf up.json
 	@rm -rf ./dist/
+	@rm -rf jwks.json
 .PHONY: clean
 
 

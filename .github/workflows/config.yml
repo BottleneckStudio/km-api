@@ -40,5 +40,7 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         DYNAMO_TABLE_POSTS: ${{ secrets.DYNAMO_TABLE_POSTS }}
+        COGNITO_POOL_ID: ${{ secrets.COGNITO_POOL_ID }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
       run: make deploy
 
