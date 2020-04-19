@@ -32,4 +32,16 @@ func TestContextMw(t *testing.T) {
 		})).ServeHTTP(w, r)
 
 	})
+
+	t.Run("should attach UserService to context", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "/api/v1/posts", nil)
+
+		UserContext(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+			us := ctx.Value(UserServiceKey)
+			assert.NotNil(t, us)
+		})).ServeHTTP(w, r)
+
+	})
 }
