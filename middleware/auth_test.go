@@ -1,16 +1,13 @@
 package middleware
 
 import (
-	"errors"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	test "github.com/BottleneckStudio/km-api/testing"
-	"github.com/dgrijalva/jwt-go"
-
+	"github.com/BottleneckStudio/km-api/services/user"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestHelper(t *testing.T) {
@@ -42,101 +39,26 @@ func TestHelper(t *testing.T) {
 }
 
 func TestAuthCheck(t *testing.T) {
-	t.Run("Nil Parser", func(t *testing.T) {
+	t.Run("No User", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodPost, "http://randomsite.com", nil)
 
-		AuthCheck(nil)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		CheckAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		})).ServeHTTP(w, r)
 
-		assert.Equal(t, w.Code, http.StatusInternalServerError)
+		assert.Equal(t, w.Code, http.StatusUnauthorized)
 	})
 
-	t.Run("empty authorization header", func(t *testing.T) {
+	t.Run("User in context", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodPost, "http://randomsite.com", nil)
-		m := new(test.ParserMock)
 
-		m.On("Parse", mock.MatchedBy(func(tokenString string) bool {
-			return true
-		})).Return(nil, errors.New("Empty AuthHeader"))
+		ctx := context.WithValue(r.Context(), "user", &user.User{}) //nolint
+		r = r.WithContext(ctx)
 
-		AuthCheck(m)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})).ServeHTTP(w, r)
-
-		assert.Equal(t, w.Code, http.StatusUnauthorized)
-	})
-
-	t.Run("Nil token", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodPost, "http://keepmotivatin", nil)
-
-		r.Header.Add("Authorization", "Bearer eyyyzjasdqe.someransadjhkahakjshdahdsa")
-		m := new(test.ParserMock)
-
-		m.On("Parse", mock.MatchedBy(func(tokenString string) bool {
-			return true
-		})).Return(nil, errors.New("Some error"))
-
-		AuthCheck(m)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})).ServeHTTP(w, r)
-		assert.Equal(t, w.Code, http.StatusUnauthorized)
-	})
-
-	t.Run("Invalid Token", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodPost, "http://keepmotivatin", nil)
-
-		r.Header.Add("Authorization", "Bearer eyyyzjasdqe.someransadjhkahakjshdahdsa")
-		m := new(test.ParserMock)
-
-		m.On("Parse", mock.MatchedBy(func(tokenString string) bool {
-			return true
-		})).Return(&jwt.Token{
-			Valid: false,
-		}, nil)
-
-		AuthCheck(m)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})).ServeHTTP(w, r)
-
-		assert.Equal(t, w.Code, http.StatusUnauthorized)
-	})
-
-	t.Run("Invalid Claims", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodPost, "http://keepmotivatin", nil)
-
-		r.Header.Add("Authorization", "Bearer eyyyzjasdqe.someransadjhkahakjshdahdsa")
-		m := new(test.ParserMock)
-
-		m.On("Parse", mock.MatchedBy(func(tokenString string) bool {
-			return true
-		})).Return(&jwt.Token{
-			Valid: true,
-		}, nil)
-
-		AuthCheck(m)(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			assert.Equal(t, r, req)
+		CheckAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		})).ServeHTTP(w, r)
 
-		assert.Equal(t, w.Code, http.StatusUnauthorized)
+		assert.Equal(t, w.Code, http.StatusOK)
 	})
-
-	t.Run("ok", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodPost, "http://keepmotivatin", nil)
-
-		r.Header.Add("Authorization", "Bearer eyyyzjasdqe.someransadjhkahakjshdahdsa")
-		m := new(test.ParserMock)
-
-		m.On("Parse", mock.MatchedBy(func(tokenString string) bool {
-			return true
-		})).Return(&jwt.Token{
-			Valid:  true,
-			Claims: make(jwt.MapClaims),
-		}, nil)
-
-		AuthCheck(m)(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		})).ServeHTTP(w, r)
-
-		m.AssertExpectations(t)
-	})
-
 }

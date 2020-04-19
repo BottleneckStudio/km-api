@@ -48,7 +48,7 @@ dev:
 	@air
 .PHONY: dev
 
-deploy: test jwks up clean
+deploy: test up clean
 	@echo "  -> done ✓"
 .PHONY: deploy
 
@@ -82,5 +82,6 @@ up.json:
 		| sed "s|\$$GITHUB_CALLBACK|${GITHUB_CALLBACK}|g" \
 		| sed "s/\$$DYNAMO_TABLE_POSTS/${DYNAMO_TABLE_POSTS}/g" \
 		| sed "s/\$$DYNAMO_TABLE_LIKES/${DYNAMO_TABLE_LIKES}/g" \
+		| sed "s/\$$AWS_REGION/${AWS_REGION}/g" \
 		> up.json
 
